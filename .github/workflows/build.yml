@@ -36,9 +36,10 @@ jobs:
         fi
         rm -rf extracted_app
 
-    - name: Install Project Dependencies
+    - name: Install Dependencies & Fix Missing Packages
       run: |
         npm install --legacy-peer-deps --force
+        npm install react-is esbuild --save-dev --legacy-peer-deps --force
 
     - name: Build Web Production Assets
       run: |
@@ -62,4 +63,3 @@ jobs:
       with:
         name: Aman-Gift-Gallery-APK
         path: android/app/build/outputs/apk/debug/*.apk
-        
