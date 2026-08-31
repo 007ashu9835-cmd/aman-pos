@@ -13,18 +13,18 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    - name: Setup Node.js
+    - name: Setup Node.js (v20 LTS)
       uses: actions/setup-node@v4
       with:
         node-version: 20
 
-    - name: Setup Java 21
+    - name: Setup Java (Temurin 17 LTS)
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '17'
 
-    - name: Setup Android SDK
+    - name: Setup Android SDK Environment
       uses: android-actions/setup-android@v3
 
     - name: Extract Project Zip
@@ -39,7 +39,7 @@ jobs:
         fi
         rm -rf extracted_app
 
-    - name: Install Dependencies & Fix Packages
+    - name: Install Node Dependencies
       run: |
         npm install --legacy-peer-deps --force
         npm install react-is esbuild --save-dev --legacy-peer-deps --force
@@ -48,18 +48,20 @@ jobs:
       run: |
         npm run build
 
-    - name: Setup Capacitor & Android Platform
+    - name: Setup Capacitor Android
       run: |
         npm install @capacitor/core @capacitor/cli @capacitor/android --legacy-peer-deps --force
         npx cap init "Aman Gift Gallery" "com.amangift.pos" --web-dir dist
         npx cap add android
         npx cap sync android
+        # Android SDK का सही पाथ प्रोजेक्ट में जोड़ना
+        echo "sdk.dir=$ANDROID_HOME" > android/local.properties
 
     - name: Build Android APK
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        ./gradlew assembleDebug --no-daemon --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
