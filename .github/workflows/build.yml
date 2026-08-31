@@ -18,11 +18,14 @@ jobs:
       with:
         node-version: 20
 
-    - name: Setup Java
+    - name: Setup Java 21
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '17'
+        java-version: '21'
+
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
 
     - name: Extract Project Zip
       run: |
@@ -36,7 +39,7 @@ jobs:
         fi
         rm -rf extracted_app
 
-    - name: Install Dependencies & Fix Missing Packages
+    - name: Install Dependencies & Fix Packages
       run: |
         npm install --legacy-peer-deps --force
         npm install react-is esbuild --save-dev --legacy-peer-deps --force
@@ -56,10 +59,11 @@ jobs:
       run: |
         cd android
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: Aman-Gift-Gallery-APK
         path: android/app/build/outputs/apk/debug/*.apk
+        
