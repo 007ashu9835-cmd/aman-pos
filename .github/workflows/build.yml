@@ -1,0 +1,65 @@
+name: Build Android APK from Zip
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Extract Project Zip
+      run: |
+        unzip -o *.zip -d extracted_app
+        if [ $(ls -1 extracted_app | wc -l) -eq 1 ] && [ -d extracted_app/* ]; then
+          mv extracted_app/*/* .
+          mv extracted_app/*/.* . 2>/dev/null || true
+        else
+          mv extracted_app/* .
+          mv extracted_app/.* . 2>/dev/null || true
+        fi
+        rm -rf extracted_app
+
+    - name: Install Project Dependencies
+      run: |
+        npm install --legacy-peer-deps --force
+
+    - name: Build Web Production Assets
+      run: |
+        npm run build
+
+    - name: Setup Capacitor & Android Platform
+      run: |
+        npm install @capacitor/core @capacitor/cli @capacitor/android --legacy-peer-deps --force
+        npx cap init "Aman Gift Gallery" "com.amangift.pos" --web-dir dist
+        npx cap add android
+        npx cap sync android
+
+    - name: Build Android APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: Aman-Gift-Gallery-APK
+        path: android/app/build/outputs/apk/debug/*.apk
+        
